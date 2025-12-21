@@ -19,7 +19,7 @@ terraform {
   cloud {
     organization = "my-remote-backend"
     workspaces {
-      name = "prod"
+      name = "dev"
     }
   }
 }
@@ -36,13 +36,3 @@ provider "aws" {
   }
 }
 
-# terraform { 
-#   cloud { 
-
-#     organization = "my-remote-backend" 
-
-#     workspaces { 
-#       name = "prod" 
-#     } 
-#   } 
-# }
