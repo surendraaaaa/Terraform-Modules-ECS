@@ -57,21 +57,6 @@ resource "aws_security_group" "ecs_instances" {
   description = "ECS instances SG"
   vpc_id      = var.vpc_id
 
-  ingress {
-    description     = "Frontend ALB to frontend tasks"
-    from_port       = var.frontend_container_port
-    to_port         = var.frontend_container_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_frontend.id]
-  }
-
-  ingress {
-    description     = "Backend ALB to backend tasks"
-    from_port       = var.backend_container_port
-    to_port         = var.backend_container_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_backend.id]
-  }
 
   dynamic "ingress" {
     for_each = var.key_pair_name != "" ? [1] : []
@@ -104,11 +89,11 @@ resource "aws_security_group" "rds" {
   vpc_id      = var.vpc_id
 
   ingress {
-    description     = "MySQL from ECS instances"
+    description     = "MySQL from ECS tasks"
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_instances.id]
+    security_groups = [aws_security_group.ecs_tasks.id]
   }
 
   egress {
@@ -118,8 +103,40 @@ resource "aws_security_group" "rds" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags =  { 
+  tags = {
     Name = "${var.name_prefix}-sg-rds"
-    }
-
+  }
 }
+
+
+# ECS TASKS SG (THIS IS WHAT ALB HITS)
+resource "aws_security_group" "ecs_tasks" {
+  name   = "${var.name_prefix}-sg-ecs-tasks"
+  vpc_id = var.vpc_id
+
+  ingress {
+    description     = "Frontend ALB to frontend tasks"
+    from_port       = var.frontend_container_port
+    to_port         = var.frontend_container_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_frontend.id]
+  }
+
+  ingress {
+    description     = "Backend ALB to backend tasks"
+    from_port       = var.backend_container_port
+    to_port         = var.backend_container_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_backend.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+

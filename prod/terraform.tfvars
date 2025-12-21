@@ -10,27 +10,27 @@ enable_public_frontend = true
 frontend_container_port = 80
 backend_container_port  = 5000
 
-frontend_image = "surendraprajapati/notes-app-backend:latest"
-backend_image  = "surendraprajapati/notes-app-frontend:latest"
+frontend_image = "surendraprajapati/notes-app-frontend:v6"
+backend_image  = "surendraprajapati/notes-app-backend:v6"
 
 frontend_health_check_path = "/"
-backend_health_check_path  = "/health"
+backend_health_check_path  = "/api/health"
 
 ecs_instance_type    = "m7i-flex.large"
-ecs_desired_capacity = 2
-ecs_min_size         = 1
-ecs_max_size         = 3
+ecs_desired_capacity = 0 #3
+ecs_min_size         = 0 #1 # keep them Zero when destroying infra
+ecs_max_size         = 0 #3
 
 key_pair_name  = "MyAWSKP"
 allow_ssh_cidr = "0.0.0.0/0"
 
-db_instance_class      = "db.m7i-flex.large"
+db_instance_class      = "db.t4g.micro"
 db_allocated_storage   = 25
-db_engine_version      = "8.0.35"
+db_engine_version      = "8.0.43"
 db_name                = "notes_db"
 db_multi_az            = false
 db_deletion_protection = false
-db_backup_retention    = 7
+db_backup_retention    = 1
 
 container_cpu    = 256
 container_memory = 512

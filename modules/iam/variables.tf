@@ -9,3 +9,8 @@ variable "allowed_secret_arns" {
   description = "List of Secrets Manager ARNs tasks may read."
   default     = []
 }
+
+variable "region" { 
+    type = string
+     }
+

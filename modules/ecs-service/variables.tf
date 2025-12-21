@@ -66,3 +66,6 @@ variable "region" {
 variable "tags" { 
     type = map(string)
      }
+variable "ecs_tasks_sg_id" {
+   type = string
+}

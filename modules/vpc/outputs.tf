@@ -13,3 +13,8 @@ output "private_subnet_ids" {
 output "private_subnet_cidrs" {
   value = [for s in aws_subnet.private : s.cidr_block]
 }
+
+
+output "nat_gateway_id" {
+  value = aws_nat_gateway.nat.id
+}

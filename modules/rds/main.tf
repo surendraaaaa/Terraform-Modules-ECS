@@ -7,6 +7,10 @@ resource "random_password" "db_password" {
 resource "aws_secretsmanager_secret" "db_user" {
   name = "${var.name_prefix}/db/user"
   tags = var.tags
+  recovery_window_in_days = 0
+  # This now works on provider v4+
+  # force_delete_without_recovery = true
+  
 }
 
 resource "aws_secretsmanager_secret_version" "db_user_val" {
@@ -17,6 +21,9 @@ resource "aws_secretsmanager_secret_version" "db_user_val" {
 resource "aws_secretsmanager_secret" "db_password" {
   name = "${var.name_prefix}/db/password"
   tags = var.tags
+  recovery_window_in_days = 0
+  # This now works on provider v4+
+  # force_delete_without_recovery = true
 }
 
 resource "aws_secretsmanager_secret_version" "db_password_val" {
@@ -50,6 +57,8 @@ resource "aws_db_instance" "mysql" {
   db_subnet_group_name       = aws_db_subnet_group.this.name
   auto_minor_version_upgrade = true
   apply_immediately          = false
+  skip_final_snapshot = true # keep it false for prod
+
   tags                       =  { 
     Name = "${var.name_prefix}-mysql"
      }

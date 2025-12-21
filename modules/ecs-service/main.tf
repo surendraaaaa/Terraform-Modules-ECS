@@ -45,10 +45,14 @@ resource "aws_ecs_service" "this" {
   cluster         = var.cluster_id
   task_definition = aws_ecs_task_definition.this.arn
   desired_count   = var.desired_count
+  force_new_deployment               = true
+  force_delete = true
+
+
 
   network_configuration {
     subnets          = var.subnets
-    security_groups  = [var.service_sg_id]
+    security_groups  = [var.ecs_tasks_sg_id]
     assign_public_ip = false
   }
 
@@ -61,10 +65,14 @@ resource "aws_ecs_service" "this" {
   capacity_provider_strategy {
     capacity_provider = var.capacity_provider
     weight            = 1
-    base              = 0
+    base              = 1
   }
 
-  deployment_minimum_healthy_percent = 50
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
+  deployment_minimum_healthy_percent = 0 # you can keep 50 in production 0 is for ECS to destory task immidiately and not wait
   deployment_maximum_percent         = 200
 
   tags = { 
