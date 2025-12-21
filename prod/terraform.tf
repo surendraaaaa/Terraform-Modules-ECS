@@ -1,12 +1,4 @@
-# terraform init
-# terraform plan -var-file=dev.tfvars
-# terraform apply -var-file=dev.tfvars
 
-# terraform plan -var-file=staging.tfvars
-# terraform apply -var-file=staging.tfvars
-
-# terraform plan -var-file=prod.tfvars
-# terraform apply -var-file=prod.tfvars
 
 
 

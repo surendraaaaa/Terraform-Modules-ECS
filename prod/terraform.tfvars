@@ -17,9 +17,9 @@ frontend_health_check_path = "/"
 backend_health_check_path  = "/api/health"
 
 ecs_instance_type    = "m7i-flex.large"
-ecs_desired_capacity = 0 #3
-ecs_min_size         = 0 #1 # keep them Zero when destroying infra
-ecs_max_size         = 0 #3
+ecs_desired_capacity = 3 #3
+ecs_min_size         = 1 #1 # keep them Zero when destroying infra
+ecs_max_size         = 3 #3
 
 key_pair_name  = "MyAWSKP"
 allow_ssh_cidr = "0.0.0.0/0"

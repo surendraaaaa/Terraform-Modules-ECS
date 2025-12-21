@@ -1,12 +1,12 @@
 resource "aws_ecs_cluster" "this" {
   name = "${var.name_prefix}-cluster"
-  setting { 
-    name = "containerInsights"
+  setting {
+    name  = "containerInsights"
     value = "enabled"
-     }
-  tags = { 
+  }
+  tags = {
     Name = "${var.name_prefix}-cluster"
-    }
+  }
 }
 
 data "aws_ssm_parameter" "ecs_ami" {
@@ -19,18 +19,18 @@ data "aws_ssm_parameter" "ecs_ami" {
 # }
 
 resource "aws_launch_template" "ecs" {
-  name_prefix   = "${var.name_prefix}-lt-ecs-"
-  image_id      =  data.aws_ssm_parameter.ecs_ami.value # "ami-0017b31c3b5cc98fb" # data.aws_ssm_parameter.ecs_ami.value 
-# Free tier eligible
-# Verified provider
-# amzn2-ami-ecs-hvm-2.0.20240227-x86_64-ebs
+  name_prefix = "${var.name_prefix}-lt-ecs-"
+  image_id    = data.aws_ssm_parameter.ecs_ami.value # "ami-0017b31c3b5cc98fb" # data.aws_ssm_parameter.ecs_ami.value 
+  # Free tier eligible
+  # Verified provider
+  # amzn2-ami-ecs-hvm-2.0.20240227-x86_64-ebs
 
   instance_type = var.ecs_instance_type
   key_name      = var.key_pair_name != "" ? var.key_pair_name : null
 
-  iam_instance_profile { 
+  iam_instance_profile {
     name = var.ecs_instance_profile_name
-}
+  }
 
   network_interfaces {
     security_groups             = [var.ecs_instance_sg_id]
@@ -39,6 +39,7 @@ resource "aws_launch_template" "ecs" {
 
   user_data = base64encode(<<-EOF
 #!/bin/bash
+sudo systemctl stop ecs
 cat <<EOT > /etc/ecs/ecs.config
 ECS_CLUSTER=notes-app-prod-cluster
 ECS_DATADIR=/data
@@ -49,28 +50,29 @@ EOT
 mkdir -p /data
 chown ec2-user:ec2-user /data
 
-systemctl enable --now ecs
+sudo systemctl start ecs
+sudo systemctl enable ecs
 EOF
-)
+  )
 
   tag_specifications {
     resource_type = "instance"
-    tags          = { 
-        Name = "${var.name_prefix}-ecs-node" 
-        }
+    tags = {
+      Name = "${var.name_prefix}-ecs-node"
+    }
   }
 
-  tags = { 
+  tags = {
     Name = "${var.name_prefix}-lt-ecs"
-    }
+  }
 }
 
 resource "aws_autoscaling_group" "ecs" {
-  name                = "${var.name_prefix}-asg-ecs"
-  desired_capacity    = var.ecs_desired_capacity
-  min_size            = var.ecs_min_size
-  max_size            = var.ecs_max_size
-  vpc_zone_identifier = var.private_subnet_ids
+  name                  = "${var.name_prefix}-asg-ecs"
+  desired_capacity      = var.ecs_desired_capacity
+  min_size              = var.ecs_min_size
+  max_size              = var.ecs_max_size
+  vpc_zone_identifier   = var.private_subnet_ids
   protect_from_scale_in = false
 
   launch_template {
@@ -87,17 +89,17 @@ resource "aws_autoscaling_group" "ecs" {
     propagate_at_launch = true
   }
 
-  lifecycle { 
+  lifecycle {
     create_before_destroy = true
-    ignore_changes = [desired_capacity]
-    }
+    ignore_changes        = [desired_capacity]
+  }
 }
 
 resource "aws_ecs_capacity_provider" "asg" {
   name = "${var.name_prefix}-cp-asg"
 
   auto_scaling_group_provider {
-    auto_scaling_group_arn         = aws_autoscaling_group.ecs.arn
+    auto_scaling_group_arn = aws_autoscaling_group.ecs.arn
     managed_scaling {
       status                    = "ENABLED"
       target_capacity           = 100
@@ -107,11 +109,11 @@ resource "aws_ecs_capacity_provider" "asg" {
     managed_termination_protection = "DISABLED"
   }
 
-  tags =  { 
+  tags = {
     Name = "${var.name_prefix}-cp-asg"
-     }
+  }
 
- 
+
 }
 
 resource "aws_ecs_cluster_capacity_providers" "attach" {
