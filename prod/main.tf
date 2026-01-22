@@ -108,7 +108,7 @@ module "frontend_service" {
   container_memory            = var.container_memory
   image                       = var.frontend_image
   container_port              = var.frontend_container_port
-  desired_count               = 0 # 2 make it zero for destruction
+  desired_count               = 2 # 2 make it zero for destruction
   subnets                     = module.vpc.private_subnet_ids
   ecs_task_execution_role_arn = module.iam.ecs_task_execution_role_arn
   ecs_task_role_arn           = module.iam.ecs_task_role_arn
@@ -119,7 +119,10 @@ module "frontend_service" {
 
   target_group_arn = module.alb.frontend_tg_arn
   log_group_name   = module.logs.frontend_log_group_name
-  env_vars         = [{ name = "NODE_ENV", value = local.env }]
+  env_vars         = [
+    { name = "NODE_ENV", value = local.env },
+    { name = "BACKEND_ALB_DNS", value = module.alb.backend_alb_dns }
+    ]
   region           = var.region
   tags             = local.tags
   depends_on       = [module.alb]
@@ -138,7 +141,7 @@ module "backend_service" {
   container_memory            = var.container_memory
   image                       = var.backend_image
   container_port              = var.backend_container_port
-  desired_count               = 0 # 2 make it zero for destruction
+  desired_count               = 2 # 2 make it zero for destruction
   subnets                     = module.vpc.private_subnet_ids
   ecs_task_execution_role_arn = module.iam.ecs_task_execution_role_arn
   ecs_task_role_arn           = module.iam.ecs_task_role_arn

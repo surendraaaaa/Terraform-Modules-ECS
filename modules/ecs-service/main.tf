@@ -10,6 +10,7 @@ resource "aws_ecs_task_definition" "this" {
   memory                   = var.container_memory
   execution_role_arn       = var.ecs_task_execution_role_arn
   task_role_arn            = var.ecs_task_role_arn
+  # depends_on      =    [aws_iam_role_policy.foo]
 
   container_definitions = jsonencode([
     {
@@ -28,6 +29,9 @@ resource "aws_ecs_task_definition" "this" {
           awslogs-stream-prefix = "ecs"
         }
       }
+
+  
+
       environment = var.env_vars
       secrets     = [for s in var.secret_env_vars : { name = s.name, valueFrom = s.value_from }]
       healthCheck = var.healthcheck_cmd != "" ? {
@@ -47,7 +51,7 @@ resource "aws_ecs_service" "this" {
   desired_count   = var.desired_count
   force_new_deployment               = true
   force_delete = true
-
+  # depends_on      = [aws_iam_role_policy.foo]
 
 
   network_configuration {
@@ -65,11 +69,7 @@ resource "aws_ecs_service" "this" {
   capacity_provider_strategy {
     capacity_provider = var.capacity_provider
     weight            = 1
-    base              = 1
-  }
-
-  lifecycle {
-    ignore_changes = [desired_count]
+    base              = 1 # set 0 when destroying 1 when apply
   }
 
   deployment_minimum_healthy_percent = 0 # you can keep 50 in production 0 is for ECS to destory task immidiately and not wait

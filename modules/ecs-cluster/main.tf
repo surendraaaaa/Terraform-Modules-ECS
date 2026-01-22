@@ -9,9 +9,9 @@ resource "aws_ecs_cluster" "this" {
   }
 }
 
-data "aws_ssm_parameter" "ecs_ami" {
-  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
-}
+# data "aws_ssm_parameter" "ecs_ami" {
+#   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
+# }
 
 # ECS-optimized AMI
 # data "aws_ssm_parameter" "ecs_ami" {
@@ -20,7 +20,7 @@ data "aws_ssm_parameter" "ecs_ami" {
 
 resource "aws_launch_template" "ecs" {
   name_prefix = "${var.name_prefix}-lt-ecs-"
-  image_id    = data.aws_ssm_parameter.ecs_ami.value # "ami-0017b31c3b5cc98fb" # data.aws_ssm_parameter.ecs_ami.value 
+  image_id    =  "ami-00afd91ac5016e88d" # "ami-0017b31c3b5cc98fb" # data.aws_ssm_parameter.ecs_ami.value 
   # Free tier eligible
   # Verified provider
   # amzn2-ami-ecs-hvm-2.0.20240227-x86_64-ebs
@@ -39,21 +39,13 @@ resource "aws_launch_template" "ecs" {
 
   user_data = base64encode(<<-EOF
 #!/bin/bash
-sudo systemctl stop ecs
-cat <<EOT > /etc/ecs/ecs.config
-ECS_CLUSTER=notes-app-prod-cluster
-ECS_DATADIR=/data
-ECS_ENABLE_TASK_IAM_ROLE=true
-ECS_ENABLE_TASK_IAM_ROLE_NETWORK_HOST=true
-EOT
-
-mkdir -p /data
-chown ec2-user:ec2-user /data
-
-sudo systemctl start ecs
-sudo systemctl enable ecs
+echo "ECS_CLUSTER=notes-app-prod-cluster" >> /etc/ecs/ecs.config
+echo "ECS_DATADIR=/data" >> /etc/ecs/ecs.config
+echo "ECS_ENABLE_TASK_IAM_ROLE=true" >> /etc/ecs/ecs.config
+echo "ECS_ENABLE_TASK_IAM_ROLE_NETWORK_HOST=true" >> /etc/ecs/ecs.config
 EOF
-  )
+)
+
 
   tag_specifications {
     resource_type = "instance"
@@ -74,6 +66,8 @@ resource "aws_autoscaling_group" "ecs" {
   max_size              = var.ecs_max_size
   vpc_zone_identifier   = var.private_subnet_ids
   protect_from_scale_in = false
+  force_delete          = true
+  termination_policies = ["Default"] # remove if ASG is not destorying
 
   launch_template {
     id      = aws_launch_template.ecs.id
@@ -93,6 +87,7 @@ resource "aws_autoscaling_group" "ecs" {
     create_before_destroy = true
     ignore_changes        = [desired_capacity]
   }
+
 }
 
 resource "aws_ecs_capacity_provider" "asg" {
@@ -123,5 +118,9 @@ resource "aws_ecs_cluster_capacity_providers" "attach" {
     capacity_provider = aws_ecs_capacity_provider.asg.name
     weight            = 1
     base              = 0
+  }
+  lifecycle {
+    # Detach capacity provider first during destroy
+    ignore_changes = [default_capacity_provider_strategy]
   }
 }

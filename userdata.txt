@@ -1,3 +1,4 @@
+# 1. Create ECS config file
 sudo tee /etc/ecs/ecs.config > /dev/null <<EOF
 ECS_CLUSTER=notes-app-prod-cluster
 ECS_DATADIR=/data
@@ -5,5 +6,34 @@ ECS_ENABLE_TASK_IAM_ROLE=true
 ECS_ENABLE_TASK_IAM_ROLE_NETWORK_HOST=true
 EOF
 
-sudo systemctl restart ecs
-sudo systemctl status ecs
+# 2. Ensure ECS data directory exists
+sudo mkdir -p /data
+sudo chown root:root /data
+
+# 3. Ensure ECS log directory exists
+sudo mkdir -p /var/log/ecs
+sudo chown root:root /var/log/ecs
+
+# 4. Enable ECS service
+sudo systemctl stop ecs
+
+# 5. Restart ECS service
+sudo systemctl start ecs
+
+# 6. Check ECS service status
+sudo systemctl enable ecs
+
+# 7. Check ECS agent logs (optional but useful)
+sudo journalctl -u ecs -n 50 --no-pager
+
+
+
+# sudo tee /etc/ecs/ecs.config > /dev/null <<EOF
+# ECS_CLUSTER=notes-app-prod-cluster
+# ECS_DATADIR=/data
+# ECS_ENABLE_TASK_IAM_ROLE=true
+# ECS_ENABLE_TASK_IAM_ROLE_NETWORK_HOST=true
+# EOF
+
+# sudo systemctl restart ecs
+# sudo systemctl status ecs

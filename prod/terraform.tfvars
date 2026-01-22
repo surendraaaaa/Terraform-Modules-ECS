@@ -10,8 +10,8 @@ enable_public_frontend = true
 frontend_container_port = 80
 backend_container_port  = 5000
 
-frontend_image = "surendraprajapati/notes-app-frontend:v6"
-backend_image  = "surendraprajapati/notes-app-backend:v6"
+frontend_image = "surendraprajapati/notes-app-frontend:v13"
+backend_image  = "surendraprajapati/notes-app-backend:v7"
 
 frontend_health_check_path = "/"
 backend_health_check_path  = "/api/health"
